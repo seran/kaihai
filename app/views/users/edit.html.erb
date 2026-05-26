@@ -1,0 +1,94 @@
+<% content_for :title, "Profile" %>
+<% content_for :page_title, "Profile" %>
+<% content_for :page_subtitle, "Tend to your account." %>
+
+<div class="space-y-8">
+  <%# ───────────────────────── Profile ───────────────────────── %>
+  <%= render "shared/ui/card", padding: :lg do %>
+    <h2 class="text-lg font-semibold text-ink mb-1">Profile</h2>
+    <p class="text-xs text-ink-soft italic mb-4">How you appear inside Kaihai.</p>
+
+    <%= form_with model: Current.user, url: user_path, method: :patch, html: { class: "contents" } do |form| %>
+      <%= render "shared/ui/input", form: form, field: :name, label: "Name", required: true %>
+      <%= render "shared/ui/input", form: form, field: :email_address, label: "Email", type: "email", required: true, autocomplete: "email",
+                 error: form.object.errors[:email_address].first %>
+
+      <div class="my-4">
+        <%= form.label :time_zone, "Time zone", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+        <%= form.time_zone_select :time_zone, nil, { default: "UTC" },
+                                  { class: input_classes(extra: "block w-full px-3") } %>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-line flex items-center justify-between gap-4">
+        <span class="text-xs text-ink-faint font-mono uppercase tracking-wider">
+          Member since <%= Current.user.created_at.strftime("%B %Y") %>
+        </span>
+        <%= render "shared/ui/button", label: "Save changes", variant: :primary, type: "submit" %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%# ───────────────────────── Handle ───────────────────────── %>
+  <%= render "shared/ui/card", padding: :lg do %>
+    <h2 class="text-lg font-semibold text-ink mb-1">Handle</h2>
+    <p class="text-xs text-ink-soft italic mb-4">The unique name people use to find you.</p>
+
+    <%= form_with model: Current.user, url: user_path, method: :patch, html: { class: "contents" } do |form| %>
+      <div data-controller="handle-suggest"
+           data-handle-suggest-url-value="<%= users_handle_suggestion_path(except_user_id: Current.user.id) %>">
+        <%= render "shared/ui/input", form: form, field: :handle, label: "Handle", required: true,
+                   field_class: handle_field_classes,
+                   error: form.object.errors[:handle].first,
+                   data: { handle_suggest_target: "handle", action: "input->handle-suggest#handleEdited" } %>
+        <p data-handle-suggest-target="hint" hidden class="-mt-3 mb-4 text-xs italic text-accent-yellow">
+          That handle isn't available — try another.
+        </p>
+      </div>
+      <div class="mt-2 flex justify-end">
+        <%= render "shared/ui/button", label: "Update handle", variant: :primary, type: "submit" %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%# ───────────────────────── Update password ───────────────────────── %>
+  <%= render "shared/ui/card", padding: :lg do %>
+    <h2 class="text-lg font-semibold text-ink mb-1">Update password</h2>
+    <p class="text-xs text-ink-soft italic mb-4">A new key. Type the old one first.</p>
+
+    <%= form_with url: user_password_path, method: :patch, html: { class: "contents" } do |form| %>
+      <%= render "shared/ui/input", form: form, field: :current_password, label: "Current password", type: "password", required: true, autocomplete: "current-password" %>
+      <%= render "shared/ui/input", form: form, field: :password, label: "New password", type: "password", required: true, autocomplete: "new-password", maxlength: 72 %>
+      <%= render "shared/ui/input", form: form, field: :password_confirmation, label: "Confirm new password", type: "password", required: true, autocomplete: "new-password", maxlength: 72 %>
+
+      <div class="mt-6 flex justify-end">
+        <%= render "shared/ui/button", label: "Update password", variant: :primary, type: "submit" %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%# ───────────────────────── Delete account ───────────────────────── %>
+  <%= render "shared/ui/card", padding: :lg do %>
+    <h2 class="text-lg font-semibold text-ink mb-1">Delete account</h2>
+    <p class="text-xs text-ink-soft italic mb-4">Leave quietly. We will keep nothing you ask us to forget.</p>
+
+    <%= render "shared/ui/modal",
+               id: "delete-account",
+               title: "Delete your account",
+               trigger_label: "Delete account",
+               trigger_variant: :danger do %>
+      <p class="mb-4">
+        This will permanently remove your account and sign you out. To confirm,
+        type your handle <strong>@<%= Current.user.handle %></strong> below.
+      </p>
+
+      <%= form_with url: user_path, method: :delete, html: { class: "contents" } do |form| %>
+        <%= render "shared/ui/input", form: form, field: :confirm_handle, label: "Type your handle", required: true %>
+
+        <div class="mt-4 flex justify-end gap-2">
+          <%= render "shared/ui/button", label: "Cancel", variant: :ghost, data: { action: "dialog#close" } %>
+          <%= render "shared/ui/button", label: "Delete forever", variant: :danger, type: "submit" %>
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

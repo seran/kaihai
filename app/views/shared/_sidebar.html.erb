@@ -1,0 +1,86 @@
+<nav class="flex flex-col h-full px-6 py-4 gap-6">
+  <div class="flex items-start justify-between">
+    <div class="leading-tight">
+      <span class="block font-semibold text-2xl text-ink"><%= app_name %></span>
+      <span class="block text-xs text-ink-soft italic"><%= app_tagline %></span>
+    </div>
+    <button type="button"
+            data-action="sidebar#close"
+            aria-label="Close menu"
+            class="min-[981px]:hidden p-2 -mr-2 rounded-md hover:bg-panel transition-colors">
+      <%= icon "close", variant: :outline, size: 20 %>
+    </button>
+  </div>
+
+  <div class="flex-1 flex flex-col gap-2 min-h-0">
+  <ul class="flex flex-col gap-1">
+    <% feed_active = current_page?(root_path) %>
+    <li>
+      <%= link_to root_path,
+                  class: [ "flex items-center gap-2 px-3 py-2 rounded-md text-base text-ink transition-colors",
+                           feed_active ? "bg-panel" : "hover:bg-panel" ],
+                  aria: { current: (feed_active ? "page" : nil) } do %>
+        <%= icon "home", variant: :outline, size: 16 %>
+        Feed
+      <% end %>
+    </li>
+
+    <% if Current.user %>
+      <% spaces_active = request.path.start_with?("/spaces") %>
+      <li>
+        <%= link_to spaces_path,
+                    class: [ "flex items-center gap-2 px-3 py-2 rounded-md text-base text-ink transition-colors",
+                             spaces_active ? "bg-panel" : "hover:bg-panel" ],
+                    aria: { current: (spaces_active ? "page" : nil) } do %>
+          <%= icon "users-group", variant: :outline, size: 16 %>
+          Spaces
+        <% end %>
+      </li>
+
+      <% bookmarks_active = current_page?(bookmarks_path) %>
+      <li>
+        <%= link_to bookmarks_path,
+                    class: [ "flex items-center gap-2 px-3 py-2 rounded-md text-base text-ink transition-colors",
+                             bookmarks_active ? "bg-panel" : "hover:bg-panel" ],
+                    aria: { current: (bookmarks_active ? "page" : nil) } do %>
+          <%= icon "bookmark", variant: :outline, size: 16 %>
+          Bookmarks
+        <% end %>
+      </li>
+
+      <%= render "shared/sidebar_notifications", user: Current.user %>
+    <% end %>
+
+  </ul>
+
+  <% if Current.user %>
+    <%= render "shared/sidebar_favorites" %>
+  <% end %>
+  </div>
+
+  <% if Current.user %>
+    <div class="border-t border-line pt-3 -mx-1">
+      <div class="relative" data-controller="popover">
+        <button type="button"
+                data-action="popover#toggle"
+                class="w-full flex items-center gap-3 p-2 rounded-md hover:bg-panel transition-colors text-left cursor-pointer">
+          <span class="w-9 h-9 rounded-full bg-accent-faint text-accent flex items-center justify-center text-sm font-semibold shrink-0">
+            <%= user_initials(Current.user) %>
+          </span>
+          <span class="flex-1 min-w-0">
+            <span class="block font-medium text-ink truncate text-sm">
+              <%= Current.user.name.presence || Current.user.handle %>
+            </span>
+            <span class="block text-xs text-ink-soft truncate">@<%= Current.user.handle %></span>
+          </span>
+        </button>
+
+        <div data-popover-target="menu"
+             hidden
+             class="absolute bottom-full left-0 right-0 mb-2 bg-paper border border-line rounded-md shadow-lg p-3 z-50">
+          <%= render "shared/user_menu" %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</nav>

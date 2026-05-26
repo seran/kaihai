@@ -1,0 +1,14 @@
+<%= turbo_frame_tag "feed-page-#{page}", class: "block space-y-3" do %>
+  <% entries.each do |entry| %>
+    <%= render "spaces/entries/card", entry: entry, show_space: true %>
+  <% end %>
+
+  <% if has_more %>
+    <%= turbo_frame_tag "feed-page-#{page + 1}",
+                        src: root_path({ page: page + 1, type: type, sort: (sort == "newest" ? nil : sort) }.compact),
+                        loading: "lazy",
+                        class: "block py-4 text-center text-xs font-mono uppercase tracking-wider text-ink-faint" do %>
+      Loading more…
+    <% end %>
+  <% end %>
+<% end %>

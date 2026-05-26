@@ -1,0 +1,71 @@
+<% content_for :title, "Notifications" %>
+<% content_for :page_title, "Notifications" %>
+<% content_for :page_subtitle, "What you've missed." %>
+
+<div class="space-y-8">
+  <%= render "shared/ui/card", padding: :lg do %>
+    <% if @notifications.any? %>
+      <% if @notifications.any? { |n| !n.read? } %>
+        <div class="flex justify-end mb-2">
+          <%= button_to "Mark all as read", read_status_path, method: :patch,
+                        form: { class: "contents" },
+                        class: button_classes(variant: :ghost) %>
+        </div>
+      <% end %>
+      <ul class="divide-y divide-line">
+        <% @notifications.each do |notification| %>
+          <li class="flex items-start gap-3 py-3 -mx-2 px-2 rounded-md <%= "bg-ink/[0.02]" unless notification.read? %>">
+            <span class="w-9 h-9 rounded-full bg-accent-faint text-accent flex items-center justify-center text-sm font-semibold shrink-0">
+              <% if notification.actor %>
+                <%= user_initials(notification.actor) %>
+              <% else %>
+                ·
+              <% end %>
+            </span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-ink">
+                <strong class="font-semibold"><%= notification.actor&.name || "Someone" %></strong>
+                <%= notification_phrase(notification) %>
+                <% if notification.kind == "space_request" && notification.notifiable %>
+                  — <strong><%= notification.notifiable.space.name %></strong>
+                <% end %>
+              </p>
+              <time datetime="<%= notification.created_at.iso8601 %>"
+                    title="<%= l(notification.created_at, format: :long) %>"
+                    class="text-xs text-ink-faint">
+                <%= time_ago_in_words(notification.created_at) %> ago
+              </time>
+              <% if notification.kind == "space_request" && (req = notification.notifiable) && req.pending? %>
+                <div class="flex items-center gap-2 mt-2">
+                  <%= button_to "Approve", space_request_path(req.space, req, decision: "approve"), method: :patch,
+                                form: { class: "contents" },
+                                class: button_classes(variant: :primary) %>
+                  <%= button_to "Decline", space_request_path(req.space, req, decision: "decline"), method: :patch,
+                                form: { class: "contents" },
+                                class: button_classes(variant: :ghost) %>
+                </div>
+              <% end %>
+              <% if notification.kind == "wave" && (wave = notification.notifiable) && notification.actor %>
+                <div class="mt-2">
+                  <% if Current.user.waved?(notification.actor, in_space: wave.space) %>
+                    <span class="text-xs font-mono uppercase tracking-wider text-ink-soft">Waved back</span>
+                  <% else %>
+                    <%= button_to "Wave back", space_waves_path(wave.space, to_user_id: notification.actor.id),
+                                  method: :post,
+                                  form: { class: "contents" },
+                                  class: button_classes(variant: :secondary) %>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+            <% unless notification.read? %>
+              <span class="w-2 h-2 rounded-full bg-accent shrink-0 mt-2" aria-label="Unread"></span>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-sm text-ink-soft italic py-4">No notifications yet — quiet around here.</p>
+    <% end %>
+  <% end %>
+</div>

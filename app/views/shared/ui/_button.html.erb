@@ -1,0 +1,18 @@
+<%
+  variant       ||= :primary
+  type          ||= "button"
+  extra         ||= nil
+  icon_name       = local_assigns[:icon]
+  icon_variant  ||= :outline
+  icon_position ||= :leading
+  icon_only       = label.blank? && icon_name.present?
+
+  attrs   = local_assigns.except(:label, :variant, :type, :extra, :icon, :icon_variant, :icon_position)
+  classes = button_classes(variant: variant, extra: extra, icon_only: icon_only)
+  classes = "#{classes} gap-2" if icon_name && !icon_only
+%>
+<%= tag.button(type: type, class: classes, **attrs) do %>
+  <% if icon_name && (icon_position == :leading || icon_only) %><%= icon(icon_name, variant: icon_variant, size: 16) %><% end %>
+  <% unless icon_only %><span><%= label %></span><% end %>
+  <% if icon_name && icon_position == :trailing && !icon_only %><%= icon(icon_name, variant: icon_variant, size: 16) %><% end %>
+<% end %>

@@ -1,0 +1,17 @@
+<% content_for :title, "Bookmarks" %>
+<% content_for :page_title, "Bookmarks" %>
+<% content_for :page_subtitle, "Things you saved for later." %>
+
+<div class="space-y-8">
+  <% if @bookmarks.any? %>
+    <div class="space-y-3">
+      <% @bookmarks.each do |bookmark| %>
+        <%= render "spaces/entries/card", entry: bookmark.entry, show_space: true %>
+      <% end %>
+    </div>
+  <% else %>
+    <%= render "shared/ui/card", padding: :lg do %>
+      <p class="text-sm text-ink-soft italic">Nothing saved yet — bookmark an entry to find it here.</p>
+    <% end %>
+  <% end %>
+</div>

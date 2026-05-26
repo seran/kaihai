@@ -1,0 +1,15 @@
+open_lounge:
+  name: The Lounge
+  handle: lounge
+  description: An open space for everyone.
+  visibility: 0
+  members_count: 1
+  creator: one
+
+private_garden:
+  name: Secret Garden
+  handle: garden
+  description: A private space for members only.
+  visibility: 1
+  members_count: 1
+  creator: two

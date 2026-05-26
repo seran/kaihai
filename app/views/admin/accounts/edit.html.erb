@@ -1,0 +1,21 @@
+<% content_for :title, "Adminland · Account" %>
+<% content_for :page_title, "Adminland" %>
+<% content_for :page_subtitle, "Settings the rest of the community can't reach." %>
+
+<div class="space-y-8">
+  <%= render "admin/subnav" %>
+
+  <%= render "shared/ui/card", padding: :lg do %>
+    <h2 class="text-lg font-semibold text-ink mb-1">Identity</h2>
+    <p class="text-xs text-ink-soft italic mb-4">Shown in the sidebar, page title, and shared embeds.</p>
+
+    <%= form_with model: @account, url: admin_account_path, method: :patch, html: { class: "contents" } do |form| %>
+      <%= render "shared/ui/input", form: form, field: :name, label: "Name", required: true %>
+      <%= render "shared/ui/input", form: form, field: :tagline, label: "Tagline" %>
+
+      <div class="mt-6 flex justify-end">
+        <%= render "shared/ui/button", label: "Save changes", variant: :primary, type: "submit" %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

@@ -1,0 +1,53 @@
+<% content_for :title, "Adminland · @#{@user.handle}" %>
+<% content_for :page_title, "Adminland" %>
+<% content_for :page_subtitle, "Settings the rest of the community can't reach." %>
+
+<div class="space-y-8">
+  <%= render "admin/subnav" %>
+
+  <turbo-frame id="admin-user" class="block space-y-8">
+    <%= link_to admin_users_path,
+                data: { turbo_frame: "_top" },
+                class: "inline-flex items-center gap-1 text-xs font-mono uppercase tracking-wider text-ink-faint hover:text-ink transition-colors" do %>
+      <%= icon "arrow-left", variant: :outline, size: 14 %>
+      All users
+    <% end %>
+
+    <%= render "shared/ui/card", padding: :lg do %>
+      <div class="flex items-start gap-4 mb-6">
+        <span class="w-12 h-12 rounded-full bg-accent-faint text-accent flex items-center justify-center text-lg font-semibold shrink-0">
+          <%= user_initials(@user) %>
+        </span>
+        <div class="flex-1 min-w-0">
+          <h2 class="text-lg font-semibold text-ink truncate"><%= @user.name %></h2>
+          <p class="text-xs text-ink-soft truncate">@<%= @user.handle %> · <%= @user.email_address %></p>
+        </div>
+        <div class="flex flex-col gap-1 items-end shrink-0">
+          <%= render "shared/ui/badge", label: @user.role, variant: (@user.admin? ? :info : :neutral) %>
+          <%= render "shared/ui/badge", label: @user.status, variant: (@user.active? ? :success : @user.blocked? ? :danger : :warning) %>
+        </div>
+      </div>
+
+      <dl class="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+        <dt class="text-xs font-mono uppercase tracking-wider text-ink-faint">Time zone</dt>
+        <dd class="text-ink"><%= @user.time_zone %></dd>
+
+        <dt class="text-xs font-mono uppercase tracking-wider text-ink-faint">Joined</dt>
+        <dd class="text-ink"><%= l(@user.created_at, format: :long) %></dd>
+
+        <dt class="text-xs font-mono uppercase tracking-wider text-ink-faint">Last updated</dt>
+        <dd class="text-ink"><%= l(@user.updated_at, format: :long) %></dd>
+      </dl>
+
+      <div class="mt-6 pt-4 border-t border-line flex justify-end gap-2">
+        <%= button_to "Send password reset link", admin_user_password_reset_path(@user),
+                      method: :post,
+                      form: { class: "contents", data: { turbo_confirm: "Email a password reset link to #{@user.email_address}?" } },
+                      class: button_classes(variant: :ghost) %>
+        <%= link_to "Edit", edit_admin_user_path(@user),
+                    data: { turbo_action: "advance" },
+                    class: button_classes(variant: :secondary) %>
+      </div>
+    <% end %>
+  </turbo-frame>
+</div>

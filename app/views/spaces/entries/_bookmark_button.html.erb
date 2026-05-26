@@ -1,0 +1,12 @@
+<% bookmarked = entry.bookmarked_by?(Current.user) %>
+<turbo-frame id="entry-bookmark-<%= entry.id %>" class="contents">
+  <%= button_to space_entry_bookmark_path(entry.space, entry),
+                method: (bookmarked ? :delete : :post),
+                form: { class: "contents" },
+                class: "#{button_classes(variant: :ghost)} gap-1.5",
+                aria: { label: (bookmarked ? "Remove bookmark" : "Bookmark") } do %>
+    <%= icon "bookmark", variant: (bookmarked ? :solid : :outline), size: 16,
+             class: (bookmarked ? "text-accent" : "text-ink-soft") %>
+    <span class="text-sm"><%= bookmarked ? "Saved" : "Save" %></span>
+  <% end %>
+</turbo-frame>

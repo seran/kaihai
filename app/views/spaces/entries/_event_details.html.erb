@@ -1,0 +1,56 @@
+<%
+  starts_at = event.starts_at
+  going_responses     = event.event_responses.where(response: EventResponse.responses[:going]).includes(:user).order(created_at: :desc)
+  maybe_responses     = event.event_responses.where(response: EventResponse.responses[:maybe])
+  recent_going_users  = going_responses.first(4).map(&:user)
+%>
+<%= turbo_frame_tag "event-details-#{event.id}", class: "block border border-ink-soft/20 rounded-md p-4 bg-panel/40" do %>
+  <div class="flex items-start gap-4">
+    <%# ── Date capsule ─────────────────────────── %>
+    <div class="shrink-0 w-14 rounded-md border border-ink-soft/20 bg-paper text-center overflow-hidden">
+      <div class="text-[10px] font-mono font-bold uppercase tracking-wider text-ink-faint bg-panel py-0.5"><%= l(starts_at, format: "%b") %></div>
+      <div class="text-2xl font-semibold text-ink leading-tight py-1"><%= l(starts_at, format: "%-d") %></div>
+    </div>
+
+    <%# ── Time + location ──────────────────────── %>
+    <div class="flex-1 min-w-0 space-y-1">
+      <div class="flex items-center gap-2 text-ink">
+        <%= icon "clock", variant: :outline, size: 14, class: "text-ink-soft shrink-0" %>
+        <span><%= l(starts_at, format: :long) %></span>
+      </div>
+      <% if event.location.present? %>
+        <div class="flex items-center gap-2 text-ink">
+          <%= icon "map-pin", variant: :outline, size: 14, class: "text-ink-soft shrink-0" %>
+          <span class="truncate"><%= event.location %></span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%# ── RSVPs ────────────────────────────────── %>
+  <div class="mt-4 pt-4 border-t border-line flex items-center gap-3 flex-wrap">
+    <% if recent_going_users.any? %>
+      <div class="flex -space-x-2">
+        <% recent_going_users.each do |user| %>
+          <span class="bg-accent-faint text-accent rounded-full w-7 h-7 flex items-center justify-center text-xs font-medium border-2 border-paper"
+                title="@<%= user.handle %>">
+            <%= user_initials(user) %>
+          </span>
+        <% end %>
+      </div>
+    <% end %>
+    <span class="text-xs font-mono uppercase tracking-wider text-ink-soft">
+      <%= going_responses.size %> going
+    </span>
+    <% if maybe_responses.any? %>
+      <span class="text-xs font-mono uppercase tracking-wider text-ink-faint">
+        · <%= maybe_responses.size %> maybe
+      </span>
+    <% end %>
+  </div>
+
+  <%# ── Response options ─────────────────────── %>
+  <div class="mt-4">
+    <%= render "spaces/entries/event_response_form", entry: entry, event: event %>
+  </div>
+<% end %>

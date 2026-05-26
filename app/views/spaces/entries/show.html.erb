@@ -1,0 +1,102 @@
+<% content_for :title, "Entry · #{@space.name}" %>
+<% content_for :page_title, @space.name %>
+<% content_for :page_subtitle, "Posted by #{@entry.author.name.presence || "@#{@entry.author.handle}"}" %>
+
+<div class="space-y-8">
+  <%= link_to space_path(@space),
+              data: { turbo_action: "advance" },
+              class: "inline-flex items-center gap-1 text-xs font-mono uppercase tracking-wider text-ink-faint hover:text-ink transition-colors" do %>
+    <%= icon "arrow-left", variant: :outline, size: 14 %>
+    Back to @<%= @space.handle %>
+  <% end %>
+
+  <%# ── Entry body ─────────────────────────────────── %>
+  <%= render "shared/ui/card", padding: :lg do %>
+    <div class="flex items-baseline justify-between mb-3">
+      <span class="text-xs font-mono uppercase tracking-wider text-ink-faint"><%= @entry.entryable_type %></span>
+      <time datetime="<%= @entry.created_at.iso8601 %>"
+            title="<%= l(@entry.created_at, format: :long) %>"
+            class="text-xs text-ink-faint">
+        <%= time_ago_in_words(@entry.created_at) %> ago
+      </time>
+    </div>
+
+    <% case @entry.entryable_type %>
+    <% when "Post" %>
+      <p class="text-ink whitespace-pre-line"><%= @entry.entryable.body %></p>
+
+    <% when "Event" %>
+      <% if @entry.entryable.description.present? %>
+        <p class="text-ink whitespace-pre-line mb-4"><%= @entry.entryable.description %></p>
+      <% end %>
+      <%= render "spaces/entries/event_details", entry: @entry, event: @entry.entryable %>
+
+    <% when "Poll" %>
+      <% if @entry.entryable.description.present? %>
+        <p class="text-ink whitespace-pre-line mb-4"><%= @entry.entryable.description %></p>
+      <% end %>
+      <%= render "spaces/entries/poll_details", entry: @entry, poll: @entry.entryable %>
+    <% end %>
+
+    <%# ── Reactions ────────────────────────────── %>
+    <div class="flex items-center gap-2 mt-6 pt-3 border-t border-line">
+      <%= render "spaces/entries/like_button", entry: @entry %>
+      <%= render "spaces/entries/bookmark_button", entry: @entry %>
+      <% if @entry.editable_by?(Current.user) %>
+        <%= link_to "Edit", edit_space_entry_path(@space, @entry),
+                    class: "#{button_classes(variant: :ghost)} ml-auto" %>
+        <%= button_to "Delete", space_entry_path(@space, @entry), method: :delete,
+                      form: { class: "contents", data: { turbo_confirm: "Delete this entry?" } },
+                      class: button_classes(variant: :ghost, extra: "text-danger") %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <%# ── Comments ──────────────────────────────────── %>
+  <%= render "shared/ui/card", padding: :lg do %>
+    <h2 class="text-lg font-semibold text-ink mb-4">
+      <%= pluralize(@entry.comments_count, "comment") %>
+    </h2>
+
+    <% if Current.user.can_post_in?(@space) %>
+      <%= form_with url: space_entry_comments_path(@space, @entry), html: { class: "contents" } do |form| %>
+        <div class="my-2">
+          <%= text_area_tag "comment[body]", nil, rows: 2,
+                            placeholder: "Add a comment…",
+                            class: input_classes(extra: "block w-full px-3") %>
+        </div>
+        <div class="mt-2 flex justify-end">
+          <%= render "shared/ui/button", label: "Post comment", variant: :primary, type: "submit" %>
+        </div>
+      <% end %>
+    <% end %>
+
+    <% if @entry.comments.any? %>
+      <ul class="divide-y divide-line mt-4">
+        <% @entry.comments.includes(:user).order(:created_at).each do |comment| %>
+          <li class="py-3 flex items-start gap-3">
+            <div class="bg-accent-faint text-accent rounded-full w-9 h-9 flex items-center justify-center text-sm font-medium shrink-0">
+              <%= user_initials(comment.user) %>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-baseline gap-2">
+                <span class="font-medium text-ink">@<%= comment.user.handle %></span>
+                <time class="text-xs text-ink-faint" datetime="<%= comment.created_at.iso8601 %>">
+                  <%= time_ago_in_words(comment.created_at) %> ago
+                </time>
+              </div>
+              <p class="text-ink whitespace-pre-line mt-1"><%= comment.body %></p>
+            </div>
+            <% if comment.editable_by?(Current.user) %>
+              <%= button_to "×", space_entry_comment_path(@space, @entry, comment), method: :delete,
+                            form: { class: "contents", data: { turbo_confirm: "Delete this comment?" } },
+                            class: "text-sm text-ink-faint hover:text-danger transition-colors cursor-pointer" %>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-sm text-ink-soft italic mt-4">No comments yet.</p>
+    <% end %>
+  <% end %>
+</div>

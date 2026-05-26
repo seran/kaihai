@@ -1,0 +1,62 @@
+<div class="space-y-3" data-controller="theme">
+  <% if Current.user.admin? %>
+    <%= link_to admin_root_path,
+                class: "flex items-center gap-2 px-3 py-2 rounded-md text-base text-ink hover:bg-panel transition-colors" do %>
+      <%= icon "user-settings", variant: :outline, size: 16 %>
+      Adminland
+    <% end %>
+  <% end %>
+
+  <%= link_to profile_path,
+              class: "flex items-center gap-2 px-3 py-2 rounded-md text-base text-ink hover:bg-panel transition-colors" do %>
+    <%= icon "user", variant: :outline, size: 16 %>
+    Profile
+  <% end %>
+
+  <div class="border-t border-line"></div>
+
+  <div>
+    <p class="text-xs font-mono text-ink-faint uppercase tracking-wider mb-2 px-1">Background</p>
+    <div class="flex items-center gap-2 px-1">
+      <% User::THEMES.each do |t| %>
+        <label class="cursor-pointer" title="<%= t.sub("-", " ").capitalize %>">
+          <input type="radio"
+                 name="theme"
+                 value="<%= t %>"
+                 data-theme-target="theme"
+                 data-action="theme#setTheme"
+                 class="peer sr-only">
+          <span class="block w-5 h-5 rounded-full border border-line ring-2 ring-transparent ring-offset-2 ring-offset-paper peer-checked:ring-ink transition"
+                style="background-color: var(--color-paper-<%= t %>);"></span>
+        </label>
+      <% end %>
+    </div>
+  </div>
+
+  <div>
+    <p class="text-xs font-mono text-ink-faint uppercase tracking-wider mb-2 px-1">Accent</p>
+    <div class="flex items-center gap-2 px-1">
+      <% User::ACCENTS.each do |a| %>
+        <label class="cursor-pointer" title="<%= a.capitalize %>">
+          <input type="radio"
+                 name="accent"
+                 value="<%= a %>"
+                 data-theme-target="accent"
+                 data-action="theme#setAccent"
+                 class="peer sr-only">
+          <span class="block w-5 h-5 rounded-full ring-2 ring-transparent ring-offset-2 ring-offset-paper peer-checked:ring-ink transition"
+                style="background-color: var(--color-accent-<%= a %>);"></span>
+        </label>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="border-t border-line pt-2">
+    <%= button_to session_path, method: :delete,
+                  form: { class: "w-full" },
+                  class: "w-full text-left flex items-center gap-2 px-3 py-2 rounded-md text-base text-danger hover:bg-danger-soft transition-colors cursor-pointer" do %>
+      <%= icon "arrow-right-to-bracket", variant: :outline, size: 16 %>
+      Sign out
+    <% end %>
+  </div>
+</div>

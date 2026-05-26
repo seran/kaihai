@@ -1,0 +1,222 @@
+<% content_for :title, @space.name %>
+<% content_for :page_title, @space.name %>
+<% content_for :page_subtitle, @space.description.presence || (@space.visibility_private? ? "A private space." : "An open space.") %>
+
+<%
+  subscription    = Current.user.subscription_for(@space)
+  pending_request = @space.pending_request_for(Current.user)
+  can_manage      = Current.user.can_manage_space?(@space)
+%>
+
+<% content_for :page_title_extras do %>
+  <%= render "spaces/favorite_button", space: @space, size: 18, padding: "p-1.5" %>
+  <% if can_manage %>
+    <%= link_to space_management_path(@space),
+                data: { turbo_action: "advance" },
+                class: "p-1.5 inline-flex items-center justify-center rounded-md hover:bg-panel transition-colors cursor-pointer shrink-0 text-ink-faint hover:text-ink",
+                aria: { label: "Manage space" },
+                title: "Manage space" do %>
+      <%= icon "cog", variant: :outline, size: 18 %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<% if subscription %>
+  <% content_for :page_search_action, space_search_path(@space) %>
+  <% content_for :page_search_placeholder, "Search #{@space.name}…" %>
+<% end %>
+
+<% tab_class = "px-5 py-2 -mb-px text-sm font-medium border-b-2 border-transparent text-ink-soft hover:text-ink transition-colors cursor-pointer data-[active=true]:border-accent data-[active=true]:text-accent" %>
+<turbo-frame id="space-body" class="block">
+<div data-controller="tabs">
+  <div class="flex items-center justify-between border-b border-line mb-6">
+    <div role="tablist" class="flex gap-1">
+      <button type="button" role="tab" data-tabs-target="tab" data-tab-id="posts"
+              data-action="tabs#select" class="<%= tab_class %>">Posts</button>
+      <button type="button" role="tab" data-tabs-target="tab" data-tab-id="events"
+              data-action="tabs#select" class="<%= tab_class %>">Events</button>
+      <button type="button" role="tab" data-tabs-target="tab" data-tab-id="polls"
+              data-action="tabs#select" class="<%= tab_class %>">Polls</button>
+      <button type="button" role="tab" data-tabs-target="tab" data-tab-id="about"
+              data-action="tabs#select" class="<%= tab_class %>">About</button>
+    </div>
+    <div class="flex items-center gap-1">
+      <% if Current.user.can_post_in?(@space) %>
+        <div data-controller="dialog">
+          <%= render "shared/ui/button", label: "New entry", variant: :ghost, icon: "plus",
+                     data: { action: "dialog#open" }, aria: { controls: "new-entry-modal" } %>
+
+          <dialog id="new-entry-modal"
+                  data-dialog-target="dialog"
+                  class="bg-paper text-ink rounded-md shadow-lg p-0 w-full max-w-lg backdrop:bg-black/40 open:m-auto">
+            <div class="p-6">
+              <div class="flex items-start justify-between mb-4">
+                <h2 class="text-lg font-semibold text-ink">New entry</h2>
+                <button type="button" data-action="dialog#close" aria-label="Close"
+                        class="text-ink-soft hover:text-ink leading-none text-xl cursor-pointer">&times;</button>
+              </div>
+              <%
+                composer_entryables = {
+                  "Post"  => Post.new,
+                  "Event" => Event.new,
+                  "Poll"  => Poll.new(poll_options: Array.new(2) { PollOption.new })
+                }
+              %>
+              <%= render "spaces/entries/composer",
+                         space: @space,
+                         entryables: composer_entryables,
+                         active_type: "Post",
+                         in_modal: true %>
+            </div>
+          </dialog>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div data-tabs-target="panel" data-tab-id="about" role="tabpanel" hidden>
+    <% mono_label = "text-xs font-mono font-bold uppercase tracking-wider text-ink-faint mb-1" %>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      <%# ── About this space ───────────────────────────── %>
+      <%= render "shared/ui/card", padding: :lg do %>
+        <h2 class="font-semibold text-2xl text-ink leading-tight mb-3">About this space</h2>
+        <p class="text-xs text-ink-soft italic mb-6"><%= @space.description.presence || "No description yet." %></p>
+
+        <div class="grid grid-cols-2 gap-y-4 gap-x-6">
+          <div>
+            <div class="<%= mono_label %>">Handle</div>
+            <div class="text-ink">@<%= @space.handle %></div>
+          </div>
+          <div>
+            <div class="<%= mono_label %>">Visibility</div>
+            <div class="flex items-center gap-1.5 text-ink">
+              <%= icon (@space.visibility_private? ? "lock" : "lock-open"), variant: :outline, size: 14, class: "text-ink-soft" %>
+              <%= @space.visibility.capitalize %>
+            </div>
+          </div>
+          <div>
+            <div class="<%= mono_label %>">Members</div>
+            <div class="text-ink"><%= pluralize(@space.members_count, "member") %></div>
+          </div>
+          <div>
+            <div class="<%= mono_label %>">Tended by</div>
+            <div class="text-ink">
+              <% if @space.creator %>@<%= @space.creator.handle %><% else %><span class="text-ink-faint italic">unknown</span><% end %>
+            </div>
+          </div>
+          <div>
+            <div class="<%= mono_label %>">Founded</div>
+            <div class="text-ink"><%= founded_label(@space.created_at) %></div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-line">
+          <% if subscription %>
+            <% unless subscription.moderator? && @space.moderators.count == 1 %>
+              <%= button_to "Leave space", space_subscription_path(@space), method: :delete,
+                            form: { class: "contents", data: { turbo_confirm: "Leave #{@space.name}?" } },
+                            class: button_classes(variant: :ghost) %>
+            <% end %>
+          <% elsif @space.visibility_open? %>
+            <%= button_to "Join space", space_subscription_path(@space), method: :post,
+                          form: { class: "contents" },
+                          class: button_classes(variant: :primary) %>
+          <% elsif pending_request %>
+            <%= render "shared/ui/badge", label: "Request pending", variant: :warning %>
+          <% else %>
+            <%= button_to "Request to join", space_requests_path(@space), method: :post,
+                          form: { class: "contents" },
+                          class: button_classes(variant: :primary) %>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%# ── Recently joined ────────────────────────────── %>
+      <%= render "shared/ui/card", padding: :lg do %>
+        <h2 class="text-lg font-semibold text-ink mb-1">Recently joined</h2>
+        <p class="text-xs text-ink-soft italic mb-4">Members who arrived in the last month.</p>
+
+        <% if @recent_subscriptions.any? %>
+          <ul class="divide-y divide-line">
+            <% @recent_subscriptions.each do |sub| %>
+              <% user = sub.user %>
+              <li class="flex items-center justify-between gap-4 py-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="bg-accent-faint text-accent rounded-full w-9 h-9 flex items-center justify-center text-sm font-medium shrink-0">
+                    <%= user_initials(user) %>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-ink truncate"><%= user.name.presence || user.handle %></div>
+                    <div class="text-xs text-ink-soft truncate">
+                      @<%= user.handle %> · joined <%= time_ago_in_words(sub.created_at) %> ago
+                    </div>
+                  </div>
+                </div>
+                <% if user == Current.user %>
+                  <span class="text-xs font-mono uppercase tracking-wider text-ink-faint">You</span>
+                <% elsif Current.user.waved?(user, in_space: @space) %>
+                  <span class="text-xs font-mono uppercase tracking-wider text-ink-soft">Waved</span>
+                <% else %>
+                  <%= button_to "Wave", space_waves_path(@space, to_user_id: user.id),
+                                method: :post,
+                                form: { class: "contents" },
+                                class: button_classes(variant: :secondary) %>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="text-sm text-ink-soft italic">No new members in the last month.</p>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <% post_entries  = @entries.select { |e| e.entryable_type == "Post"  } %>
+  <% event_entries = @entries.select { |e| e.entryable_type == "Event" } %>
+  <% poll_entries  = @entries.select { |e| e.entryable_type == "Poll"  } %>
+
+  <div data-tabs-target="panel" data-tab-id="posts" role="tabpanel">
+    <% if post_entries.any? %>
+      <div class="space-y-3">
+        <% post_entries.each do |entry| %>
+          <%= render "spaces/entries/card", entry: entry, show_space: false %>
+        <% end %>
+      </div>
+    <% else %>
+      <%= render "shared/ui/card", padding: :lg do %>
+        <p class="text-sm text-ink-soft italic">No posts yet — be the first.</p>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div data-tabs-target="panel" data-tab-id="events" role="tabpanel" hidden>
+    <% if event_entries.any? %>
+      <div class="space-y-3">
+        <% event_entries.each do |entry| %>
+          <%= render "spaces/entries/card", entry: entry, show_space: false %>
+        <% end %>
+      </div>
+    <% else %>
+      <%= render "shared/ui/card", padding: :lg do %>
+        <p class="text-sm text-ink-soft italic">No events scheduled.</p>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div data-tabs-target="panel" data-tab-id="polls" role="tabpanel" hidden>
+    <% if poll_entries.any? %>
+      <div class="space-y-3">
+        <% poll_entries.each do |entry| %>
+          <%= render "spaces/entries/card", entry: entry, show_space: false %>
+        <% end %>
+      </div>
+    <% else %>
+      <%= render "shared/ui/card", padding: :lg do %>
+        <p class="text-sm text-ink-soft italic">No polls open.</p>
+      <% end %>
+    <% end %>
+  </div>
+
+</div>
+</turbo-frame>

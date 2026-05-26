@@ -1,0 +1,12 @@
+<% liked = entry.liked_by?(Current.user) %>
+<turbo-frame id="entry-like-<%= entry.id %>" class="contents">
+  <%= button_to space_entry_like_path(entry.space, entry),
+                method: (liked ? :delete : :post),
+                form: { class: "contents" },
+                class: "#{button_classes(variant: :ghost)} gap-1.5",
+                aria: { label: (liked ? "Unlike" : "Like") } do %>
+    <%= icon "heart", variant: (liked ? :solid : :outline), size: 16,
+             class: (liked ? "text-danger" : "text-ink-soft") %>
+    <span class="text-sm"><%= entry.likes_count %></span>
+  <% end %>
+</turbo-frame>

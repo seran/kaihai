@@ -1,0 +1,61 @@
+<% content_for :title, "Edit · #{@space.name}" %>
+<% content_for :page_title, "Edit entry" %>
+<% content_for :page_subtitle, "Adjust what you posted." %>
+
+<div class="space-y-8">
+  <%= link_to space_entry_path(@space, @entry),
+              data: { turbo_action: "advance" },
+              class: "inline-flex items-center gap-1 text-xs font-mono uppercase tracking-wider text-ink-faint hover:text-ink transition-colors" do %>
+    <%= icon "arrow-left", variant: :outline, size: 14 %>
+    Back to entry
+  <% end %>
+
+  <%= render "shared/ui/card", padding: :lg do %>
+    <span class="text-xs font-mono uppercase tracking-wider text-ink-faint"><%= @entry.entryable_type %></span>
+
+    <%= form_with model: @entry.entryable,
+                  url: space_entry_path(@space, @entry),
+                  method: :patch,
+                  html: { class: "contents" } do |form| %>
+      <% case @entry.entryable_type %>
+      <% when "Post" %>
+        <div class="my-4">
+          <%= form.label :body, "Body", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+          <%= form.text_area :body, rows: 5, required: true, class: input_classes(extra: "block w-full px-3") %>
+        </div>
+
+      <% when "Event" %>
+        <%= render "shared/ui/input", form: form, field: :description, label: "Description" %>
+        <div class="my-4">
+          <%= form.label :starts_at, "Starts at", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+          <%= form.datetime_local_field :starts_at, required: true, class: input_classes(extra: "block w-full px-3") %>
+        </div>
+        <%= render "shared/ui/input", form: form, field: :location, label: "Location (optional)" %>
+
+      <% when "Poll" %>
+        <div class="my-4">
+          <%= form.label :description, "Description (optional)", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+          <%= form.text_area :description, rows: 3, class: input_classes(extra: "block w-full px-3") %>
+        </div>
+        <div class="my-4">
+          <%= form.label :question, "Question", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+          <%= form.text_area :question, rows: 2, required: true, class: input_classes(extra: "block w-full px-3") %>
+        </div>
+        <% if @entry.entryable.answered? %>
+          <p class="text-xs text-warning italic mb-2">Options are frozen — answers have been recorded.</p>
+        <% end %>
+        <ul class="space-y-1 text-sm text-ink mb-4">
+          <% @entry.entryable.poll_options.each do |option| %>
+            <li class="px-3 py-2 rounded-sm border border-ink-soft/20"><%= option.body %></li>
+          <% end %>
+        </ul>
+      <% end %>
+
+      <div class="mt-6 flex justify-end gap-2">
+        <%= link_to "Cancel", space_entry_path(@space, @entry),
+                    class: button_classes(variant: :ghost) %>
+        <%= render "shared/ui/button", label: "Save changes", variant: :primary, type: "submit" %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

@@ -1,0 +1,6 @@
+two_waved_one_in_lounge:
+  from_user_id: <%= ActiveRecord::FixtureSet.identify(:two) %>
+  to_user_id:   <%= ActiveRecord::FixtureSet.identify(:one) %>
+  space_id:     <%= ActiveRecord::FixtureSet.identify(:open_lounge) %>
+  created_at:   <%= 1.hour.ago.to_fs(:db) %>
+  updated_at:   <%= 1.hour.ago.to_fs(:db) %>

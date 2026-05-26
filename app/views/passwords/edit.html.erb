@@ -1,0 +1,21 @@
+<% content_for :title, "Set a new password" %>
+
+<div class="mx-auto w-full max-w-md space-y-8">
+  <header class="space-y-1">
+    <h1 class="font-semibold text-2xl text-ink">Set a new password.</h1>
+    <p class="text-xs text-ink-soft italic">This finishes the reset.</p>
+  </header>
+
+  <%= render "shared/ui/card", padding: :lg do %>
+    <%= form_with url: password_path(params[:token]), method: :put, html: { class: "contents" } do |form| %>
+      <%= render "shared/ui/input", form: form, field: :password, label: "New password",
+                 type: "password", required: true, autocomplete: "new-password", maxlength: 72 %>
+      <%= render "shared/ui/input", form: form, field: :password_confirmation, label: "Confirm password",
+                 type: "password", required: true, autocomplete: "new-password", maxlength: 72 %>
+
+      <div class="mt-6 flex justify-end">
+        <%= render "shared/ui/button", label: "Save password", variant: :primary, type: "submit" %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

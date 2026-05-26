@@ -1,0 +1,35 @@
+<% content_for :title, "Search · #{@space.name}" %>
+<% content_for :page_title, @space.name %>
+<% content_for :page_subtitle, @query.present? ? "Search results for \"#{@query}\"" : "Search this space" %>
+<% content_for :page_search_action, space_search_path(@space) %>
+<% content_for :page_search_value, @query %>
+<% content_for :page_search_placeholder, "Search #{@space.name}…" %>
+
+<% content_for :page_title_extras do %>
+  <%= link_to space_path(@space),
+              data: { turbo_frame: "_top" },
+              class: "p-1.5 inline-flex items-center justify-center rounded-md hover:bg-panel transition-colors cursor-pointer shrink-0 text-ink-faint hover:text-ink",
+              aria: { label: "Back to #{@space.name}" },
+              title: "Back to #{@space.name}" do %>
+    <%= icon "arrow-left", variant: :outline, size: 18 %>
+  <% end %>
+<% end %>
+
+<% if @query.blank? %>
+  <%= render "shared/ui/card", padding: :lg do %>
+    <p class="text-sm text-ink-soft italic">Use the search box above to find posts, events, and polls in this space.</p>
+  <% end %>
+<% elsif @entries.any? %>
+  <div class="mb-3 text-xs font-mono uppercase tracking-wider text-ink-faint">
+    <%= pluralize(@entries.size, "match") %>
+  </div>
+  <div class="space-y-3">
+    <% @entries.each do |entry| %>
+      <%= render "spaces/entries/card", entry: entry, show_space: false %>
+    <% end %>
+  </div>
+<% else %>
+  <%= render "shared/ui/card", padding: :lg do %>
+    <p class="text-sm text-ink-soft italic">No matches for "<%= @query %>".</p>
+  <% end %>
+<% end %>

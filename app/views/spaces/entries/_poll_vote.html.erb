@@ -1,0 +1,40 @@
+<%
+  existing      = poll.answer_for(Current.user)
+  answer_counts = poll.poll_answers.group(:poll_option_id).count
+  total_answers = answer_counts.values.sum
+%>
+<turbo-frame id="poll-vote-<%= poll.id %>" class="block">
+  <% if existing %>
+    <ul class="space-y-2">
+      <% poll.poll_options.each do |option| %>
+        <% count  = answer_counts[option.id] || 0 %>
+        <% pct    = total_answers.zero? ? 0 : (count * 100.0 / total_answers).round %>
+        <% chosen = existing.poll_option_id == option.id %>
+        <li class="relative px-3 py-2 rounded-sm border <%= chosen ? 'border-accent text-ink' : 'border-ink-soft/20 text-ink-soft' %> overflow-hidden">
+          <div class="absolute inset-y-0 left-0 bg-panel" style="width: <%= pct %>%"></div>
+          <div class="relative flex items-center justify-between gap-3">
+            <span class="truncate"><%= option.body %></span>
+            <span class="text-xs font-mono text-ink-faint shrink-0"><%= pct %>% · <%= count %></span>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+    <p class="text-xs font-mono uppercase tracking-wider text-ink-soft mt-3">
+      <%= pluralize(total_answers, "answer") %>
+    </p>
+  <% else %>
+    <ul class="space-y-2">
+      <% poll.poll_options.each do |option| %>
+        <li>
+          <%= button_to space_entry_poll_answer_path(entry.space, entry),
+                        method: :post,
+                        params: { poll_answer: { poll_option_id: option.id } },
+                        form: { class: "contents" },
+                        class: "w-full px-3 py-2 rounded-sm border border-ink-soft/20 text-sm text-ink text-left hover:bg-panel hover:border-ink-soft/40 transition-colors cursor-pointer" do %>
+            <%= option.body %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</turbo-frame>

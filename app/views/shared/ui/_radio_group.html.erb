@@ -1,0 +1,20 @@
+<%
+  hint  ||= nil
+  label ||= nil
+%>
+<fieldset class="my-4">
+  <% if label %>
+    <legend class="block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5"><%= label %></legend>
+  <% end %>
+  <div class="inline-flex gap-1 rounded-md bg-panel p-1">
+    <% options.each do |option_label, value| %>
+      <label class="px-3 py-1.5 text-sm rounded-sm cursor-pointer transition-colors border border-transparent text-ink-soft hover:text-ink has-[:checked]:bg-paper has-[:checked]:text-ink has-[:checked]:border-ink-soft/30">
+        <%= form.radio_button field, value, class: "sr-only" %>
+        <%= option_label %>
+      </label>
+    <% end %>
+  </div>
+  <% if hint %>
+    <p class="text-xs text-ink-soft italic mt-1"><%= hint %></p>
+  <% end %>
+</fieldset>

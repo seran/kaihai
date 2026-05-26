@@ -1,0 +1,34 @@
+<%
+  id              ||= "modal-#{SecureRandom.hex(4)}"
+  title           ||= nil
+  trigger_label   ||= "Open"
+  trigger_variant ||= :secondary
+%>
+<div data-controller="dialog">
+  <%= render "shared/ui/button",
+             label: trigger_label,
+             variant: trigger_variant,
+             data: { action: "dialog#open" },
+             aria: { controls: id } %>
+
+  <dialog id="<%= id %>"
+          data-dialog-target="dialog"
+          class="bg-paper text-ink rounded-md shadow-lg p-0 w-full max-w-md backdrop:bg-black/40 open:m-auto">
+    <div class="p-6">
+      <% if title %>
+        <div class="flex items-start justify-between mb-4">
+          <h2 class="text-lg font-semibold text-ink"><%= title %></h2>
+          <button type="button"
+                  data-action="dialog#close"
+                  aria-label="Close"
+                  class="text-ink-soft hover:text-ink leading-none text-xl cursor-pointer">
+            &times;
+          </button>
+        </div>
+      <% end %>
+      <div class="text-sm">
+        <%= yield %>
+      </div>
+    </div>
+  </dialog>
+</div>

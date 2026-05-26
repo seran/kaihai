@@ -1,0 +1,24 @@
+<% content_for :title, "Forgot your password?" %>
+
+<div class="mx-auto w-full max-w-md space-y-8">
+  <header class="space-y-1">
+    <h1 class="font-semibold text-2xl text-ink">Forgot your password?</h1>
+    <p class="text-xs text-ink-soft italic">We'll email a link to reset it.</p>
+  </header>
+
+  <%= render "shared/ui/card", padding: :lg do %>
+    <%= form_with url: passwords_path, html: { class: "contents" } do |form| %>
+      <%= render "shared/ui/input", form: form, field: :email_address, label: "Email",
+                 type: "email", required: true, autofocus: true, autocomplete: "username",
+                 value: params[:email_address] %>
+
+      <div class="mt-6 flex justify-end">
+        <%= render "shared/ui/button", label: "Email reset instructions", variant: :primary, type: "submit" %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <p class="text-center text-xs text-ink-soft">
+    <%= link_to "Back to sign in", new_session_path, class: "text-accent hover:underline" %>
+  </p>
+</div>

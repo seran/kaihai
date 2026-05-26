@@ -1,0 +1,16 @@
+<%
+  size      ||= 15
+  hover_bg  = local_assigns.fetch(:hover_bg, "hover:bg-panel")
+  padding   = local_assigns.fetch(:padding, "px-1.5 py-1")
+  favorited = Current.user.favorited?(space)
+%>
+<turbo-frame id="favorite-<%= space.id %>" class="contents">
+  <%= button_to space_favorite_path(space),
+                method: (favorited ? :delete : :post),
+                form: { class: "contents" },
+                class: "#{padding} inline-flex items-center justify-center rounded-md #{hover_bg} transition-colors cursor-pointer shrink-0",
+                aria: { label: (favorited ? "Unfavorite" : "Favorite") } do %>
+    <%= icon "star", variant: (favorited ? :solid : :outline), size: size,
+             class: (favorited ? "text-accent-yellow" : "text-ink-faint") %>
+  <% end %>
+</turbo-frame>

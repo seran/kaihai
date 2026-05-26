@@ -1,0 +1,8 @@
+<%
+  padding ||= :md
+  extra   ||= nil
+  pad       = { sm: "p-3", md: "p-4", lg: "p-6" }.fetch(padding)
+%>
+<div class="border border-ink-soft/20 rounded-md <%= pad %> <%= extra %>">
+  <%= yield %>
+</div>

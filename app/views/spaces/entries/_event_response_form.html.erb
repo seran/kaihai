@@ -1,0 +1,33 @@
+<% existing = event.response_for(Current.user) %>
+<% counts   = event.event_responses.group(:response).count %>
+<% method   = existing ? :patch : :post %>
+<% url      = space_entry_event_response_path(entry.space, entry) %>
+<% choices  = [
+  [ "Going",     :going,     "text-success" ],
+  [ "Maybe",     :maybe,     "text-warning" ],
+  [ "Not going", :not_going, "text-ink-soft" ]
+] %>
+
+<% if event.past? %>
+  <div class="flex items-center gap-2 flex-wrap text-sm text-ink-soft">
+    <span class="font-mono text-xs uppercase tracking-wider text-ink-faint">This event has ended.</span>
+    <% choices.each do |label, _value, color_class| %>
+      <span class="px-2 py-0.5 text-xs">
+        <%= label %>
+        <span class="<%= color_class %> ml-1"><%= counts[EventResponse.responses[_value]] || 0 %></span>
+      </span>
+    <% end %>
+  </div>
+<% else %>
+  <div class="flex items-center gap-2 flex-wrap">
+    <% choices.each do |label, value, color_class| %>
+      <% selected = existing&.response&.to_sym == value %>
+      <%= button_to url, method: method, params: { event_response: { response: value.to_s } },
+                    form: { class: "contents" },
+                    class: "px-3 py-1.5 text-sm rounded-sm border transition-colors cursor-pointer #{selected ? 'bg-panel border-ink-soft/30 text-ink' : 'border-transparent text-ink-soft hover:bg-panel'}" do %>
+        <%= label %>
+        <span class="text-xs <%= color_class %> ml-1"><%= counts[EventResponse.responses[value]] || 0 %></span>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

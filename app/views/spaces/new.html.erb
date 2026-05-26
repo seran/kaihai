@@ -1,0 +1,9 @@
+<% content_for :title, "New space" %>
+<% content_for :page_title, "New space" %>
+<% content_for :page_subtitle, "Open a room for the conversations you want to host." %>
+
+<div class="space-y-6">
+  <%= render "shared/ui/card", padding: :lg do %>
+    <%= render "spaces/form", space: @space %>
+  <% end %>
+</div>

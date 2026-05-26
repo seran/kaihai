@@ -1,0 +1,28 @@
+<% content_for :title, "Sign in" %>
+
+<div class="mx-auto w-full max-w-md space-y-8">
+  <header class="space-y-1">
+    <h1 class="font-semibold text-2xl text-ink">Welcome back.</h1>
+    <p class="text-xs text-ink-soft italic">Sign in to <%= app_name %>.</p>
+  </header>
+
+  <%= render "shared/ui/card", padding: :lg do %>
+    <%= form_with url: session_url, html: { class: "contents" } do |form| %>
+      <%= render "shared/ui/input", form: form, field: :email_address, label: "Email",
+                 type: "email", required: true, autofocus: true, autocomplete: "username",
+                 value: params[:email_address] %>
+      <%= render "shared/ui/input", form: form, field: :password, label: "Password",
+                 type: "password", required: true, autocomplete: "current-password", maxlength: 72 %>
+
+      <div class="mt-6 flex justify-end">
+        <%= render "shared/ui/button", label: "Sign in", variant: :primary, type: "submit" %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <p class="text-center text-xs text-ink-soft">
+    <%= link_to "Email me a sign-in link", new_magic_link_path, class: "text-accent hover:underline" %>
+    <span class="text-ink-faint mx-1">·</span>
+    <%= link_to "Forgot password?", new_password_path, class: "text-accent hover:underline" %>
+  </p>
+</div>

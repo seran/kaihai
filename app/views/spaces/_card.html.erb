@@ -1,0 +1,30 @@
+<% subscribed = space.subscriber?(Current.user) %>
+<div class="relative border border-ink-soft/20 rounded-md p-4 hover:bg-panel/40 transition-colors">
+  <%= link_to space_path(space), class: "absolute inset-0 rounded-md", data: { turbo_frame: "_top" }, aria: { label: space.name } do %><% end %>
+
+  <div class="flex items-start justify-between gap-2 mb-2">
+    <div class="flex items-center gap-1.5 min-w-0">
+      <%= icon (space.visibility_private? ? "lock" : "lock-open"), variant: :outline, size: 14, class: "text-ink-soft shrink-0" %>
+      <h3 class="font-semibold text-ink truncate"><%= space.name %></h3>
+    </div>
+
+    <div class="relative z-10">
+      <%= render "spaces/favorite_button", space: space %>
+    </div>
+  </div>
+
+  <p class="text-sm text-ink-soft line-clamp-2 mb-3 min-h-[2.5rem]">
+    <%= space.description.presence || "No description yet." %>
+  </p>
+  <div class="flex items-center justify-between">
+    <span class="text-xs font-mono uppercase tracking-wider text-ink-faint">
+      <%= pluralize(space.members_count, "member") %>
+    </span>
+    <% if subscribed %>
+      <span class="flex items-center gap-0.5 text-xs font-mono text-accent">
+        <%= icon "check", variant: :outline, size: 12 %>
+        Subscribed
+      </span>
+    <% end %>
+  </div>
+</div>

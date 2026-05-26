@@ -1,0 +1,24 @@
+<% content_for :title, "#{@space.name} · Entries" %>
+<% content_for :page_title, @space.name %>
+<% content_for :page_subtitle, "Entries" %>
+
+<div class="space-y-8">
+  <% if Current.user&.can_post_in?(@space) %>
+    <div class="flex justify-end">
+      <%= link_to "New entry", new_space_entry_path(@space),
+                  class: button_classes(variant: :primary) %>
+    </div>
+  <% end %>
+
+  <% if @entries.any? %>
+    <div class="space-y-3">
+      <% @entries.each do |entry| %>
+        <%= render "spaces/entries/card", entry: entry, show_space: false %>
+      <% end %>
+    </div>
+  <% else %>
+    <%= render "shared/ui/card", padding: :lg do %>
+      <p class="text-sm text-ink-soft italic">No entries yet — be the first.</p>
+    <% end %>
+  <% end %>
+</div>

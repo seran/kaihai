@@ -1,0 +1,12 @@
+unread_wave:
+  recipient: one
+  actor: two
+  notifiable: two_waved_one_in_lounge (Wave)
+  kind: wave
+
+read_comment:
+  recipient: one
+  actor: two
+  notifiable: one (User)
+  kind: comment
+  read_at: <%= 1.day.ago %>

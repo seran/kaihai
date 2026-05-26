@@ -1,0 +1,30 @@
+<div data-controller="dialog">
+  <%= link_to new_space_path,
+              data: { action: "dialog#open" },
+              aria: { controls: "new-space-modal" },
+              class: "#{button_classes(variant: :ghost)} gap-2" do %>
+    <%= icon "plus", variant: :outline, size: 16 %>
+    <span>New space</span>
+  <% end %>
+
+  <dialog id="new-space-modal"
+          data-dialog-target="dialog"
+          class="bg-paper text-ink rounded-md shadow-lg p-0 w-full max-w-md backdrop:bg-black/40 open:m-auto">
+    <div class="p-6">
+      <div class="flex items-start justify-between mb-4">
+        <h2 class="text-lg font-semibold text-ink">New space</h2>
+        <button type="button"
+                data-action="dialog#close"
+                aria-label="Close"
+                class="text-ink-soft hover:text-ink leading-none text-xl cursor-pointer">
+          &times;
+        </button>
+      </div>
+      <p class="text-xs text-ink-soft italic mb-4">Open a room for the conversations you want to host.</p>
+
+      <turbo-frame id="new-space-form">
+        <%= render "spaces/form", space: Space.new, in_modal: true %>
+      </turbo-frame>
+    </div>
+  </dialog>
+</div>

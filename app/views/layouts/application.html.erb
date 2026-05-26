@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html data-theme="<%= Current.user&.theme || "warm-light" %>" data-accent="<%= Current.user&.accent || "blue" %>">
+  <head>
+    <title><%= content_for(:title) || app_name %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="<%= app_name %>">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="bg-paper text-ink antialiased min-h-screen">
+    <%= render "shared/ui/toaster" %>
+
+    <% if Current.user %>
+      <div data-controller="sidebar"
+           class="grid min-h-screen grid-cols-1 min-[981px]:grid-cols-[260px_minmax(0,1fr)]">
+
+        <%# Backdrop for the drawer — clicking dismisses it (mobile + tablet) %>
+        <div class="app-backdrop" data-action="click->sidebar#close"></div>
+
+        <%# Sidebar: sticky on desktop (≥981px), off-canvas drawer below that %>
+        <aside class="app-sidebar bg-paper border-r border-line
+                      min-[981px]:sticky min-[981px]:top-0 min-[981px]:h-dvh min-[981px]:overflow-y-auto">
+          <% if Current.user %>
+            <%= turbo_stream_from Current.user, :sidebar_notifications %>
+          <% end %>
+          <%= render "shared/sidebar" %>
+        </aside>
+
+        <%# Main content: fills remaining width on desktop, full single column below. %>
+        <main class="min-w-0 flex flex-col">
+          <header class="min-[981px]:hidden flex items-center gap-3 px-4 py-3 border-b border-line">
+            <button type="button"
+                    data-action="sidebar#toggle"
+                    aria-label="Open menu"
+                    class="p-2 -ml-2 rounded-md hover:bg-panel transition-colors cursor-pointer">
+              <%= icon "bars", variant: :outline, size: 24 %>
+            </button>
+            <div class="leading-tight">
+              <span class="block font-semibold text-2xl text-ink"><%= app_name %></span>
+              <span class="block text-xs text-ink-soft italic"><%= app_tagline %></span>
+            </div>
+          </header>
+
+          <% if content_for?(:page_title) %>
+            <%= render "shared/ui/page_header",
+                       title: content_for(:page_title),
+                       subtitle: content_for?(:page_subtitle) ? content_for(:page_subtitle) : nil,
+                       title_extras: content_for?(:page_title_extras) ? content_for(:page_title_extras) : nil,
+                       actions: content_for?(:page_actions) ? content_for(:page_actions) : nil,
+                       search_action: content_for?(:page_search_action) ? content_for(:page_search_action) : nil,
+                       search_value: content_for?(:page_search_value) ? content_for(:page_search_value) : nil,
+                       search_placeholder: content_for?(:page_search_placeholder) ? content_for(:page_search_placeholder) : nil %>
+          <% end %>
+          <div class="mx-auto w-full max-w-4xl px-8 py-8">
+            <%= yield %>
+          </div>
+        </main>
+      </div>
+    <% else %>
+      <main class="min-h-screen px-5 py-8">
+        <%= yield %>
+      </main>
+    <% end %>
+  </body>
+</html>

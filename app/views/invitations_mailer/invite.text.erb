@@ -1,0 +1,6 @@
+<% if @inviter %><%= @inviter.name.presence || @inviter.handle %> invited you to join <%= Current.account&.name.presence || "Kaihai" %>.<% else %>You've been invited to join <%= Current.account&.name.presence || "Kaihai" %>.<% end %>
+
+Set up your account here:
+<%= edit_invitation_url(@user.generate_token_for(:invitation)) %>
+
+This link expires in 24 hours.

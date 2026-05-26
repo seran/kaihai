@@ -1,0 +1,22 @@
+<turbo-frame id="sidebar-favorites" class="block">
+  <% if Current.user && (favorites = Current.user.favorite_spaces.alphabetical).any? %>
+    <div class="mt-4 px-3 mb-2 text-xs font-mono font-medium uppercase tracking-wider text-ink-faint">
+      Favorites
+    </div>
+    <ul class="flex flex-col gap-1">
+      <% favorites.each do |space| %>
+        <% active = current_page?(space_path(space)) %>
+        <li>
+          <%= link_to space_path(space),
+                      data: { turbo_frame: "_top" },
+                      class: [ "flex items-center gap-2 px-3 py-2 rounded-md text-base text-ink transition-colors truncate",
+                               active ? "bg-panel" : "hover:bg-panel" ],
+                      aria: { current: (active ? "page" : nil) } do %>
+            <%= icon "star", variant: :solid, size: 14, class: "text-accent-yellow shrink-0" %>
+            <span class="truncate"><%= space.name %></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</turbo-frame>

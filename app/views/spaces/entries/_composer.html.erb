@@ -1,0 +1,99 @@
+<%
+  active_type ||= "Post"
+  tab_class     = "px-5 py-2 -mb-px text-sm font-medium border-b-2 border-transparent text-ink-soft hover:text-ink transition-colors cursor-pointer data-[active=true]:border-accent data-[active=true]:text-accent"
+  types         = [ [ "Post", "Post" ], [ "Event", "Event" ], [ "Poll", "Poll" ] ]
+%>
+<div data-controller="tabs" data-tabs-active-value="<%= active_type %>">
+  <div class="flex items-center border-b border-line mb-6">
+    <div role="tablist" class="flex gap-1">
+      <% types.each do |label, value| %>
+        <button type="button" role="tab"
+                data-tabs-target="tab"
+                data-tab-id="<%= value %>"
+                data-action="tabs#select"
+                class="<%= tab_class %>">
+          <%= label %>
+        </button>
+      <% end %>
+    </div>
+  </div>
+
+  <%# ── Post ───────────────────────────────────────── %>
+  <div data-tabs-target="panel" data-tab-id="Post" role="tabpanel" <%= "hidden" unless active_type == "Post" %>>
+    <%= form_with model: entryables["Post"], url: space_entries_path(space, type: "Post"),
+                  html: { class: "contents", data: { turbo_frame: "_top" } } do |form| %>
+      <div class="my-4">
+        <%= form.label :body, "What's on your mind?", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+        <%= form.text_area :body, rows: 5, required: true,
+                           class: input_classes(extra: "block w-full px-3") %>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-2">
+        <% if local_assigns[:in_modal] %>
+          <button type="button" data-action="dialog#close" class="<%= button_classes(variant: :ghost) %>">Cancel</button>
+        <% end %>
+        <%= render "shared/ui/button", label: "Share post", variant: :primary, type: "submit" %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# ── Event ──────────────────────────────────────── %>
+  <div data-tabs-target="panel" data-tab-id="Event" role="tabpanel" <%= "hidden" unless active_type == "Event" %>>
+    <%= form_with model: entryables["Event"], url: space_entries_path(space, type: "Event"),
+                  html: { class: "contents", data: { turbo_frame: "_top" } } do |form| %>
+      <%= render "shared/ui/input", form: form, field: :description, label: "Description" %>
+
+      <div class="my-4">
+        <%= form.label :starts_at, "Starts at", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+        <%= form.datetime_local_field :starts_at, required: true,
+                                      class: input_classes(extra: "block w-full px-3") %>
+      </div>
+
+      <%= render "shared/ui/input", form: form, field: :location, label: "Location (optional)" %>
+
+      <div class="mt-6 flex justify-end gap-2">
+        <% if local_assigns[:in_modal] %>
+          <button type="button" data-action="dialog#close" class="<%= button_classes(variant: :ghost) %>">Cancel</button>
+        <% end %>
+        <%= render "shared/ui/button", label: "Schedule event", variant: :primary, type: "submit" %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# ── Poll ───────────────────────────────────────── %>
+  <div data-tabs-target="panel" data-tab-id="Poll" role="tabpanel" <%= "hidden" unless active_type == "Poll" %>>
+    <%= form_with model: entryables["Poll"], url: space_entries_path(space, type: "Poll"),
+                  html: { class: "contents", data: { turbo_frame: "_top" } } do |form| %>
+      <div class="my-4">
+        <%= form.label :description, "Description (optional)", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+        <%= form.text_area :description, rows: 3,
+                           class: input_classes(extra: "block w-full px-3") %>
+      </div>
+
+      <div class="my-4">
+        <%= form.label :question, "Question", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+        <%= form.text_area :question, rows: 2, required: true,
+                           class: input_classes(extra: "block w-full px-3") %>
+      </div>
+
+      <div class="my-4">
+        <span class="block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5">Options</span>
+        <div class="space-y-2">
+          <%= form.fields_for :poll_options do |opt| %>
+            <%= opt.text_field :body,
+                               placeholder: "Option",
+                               class: input_classes(extra: "block w-full px-3") %>
+          <% end %>
+        </div>
+        <p class="text-xs text-ink-soft italic mt-1">2–10 options. Empty rows are ignored.</p>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-2">
+        <% if local_assigns[:in_modal] %>
+          <button type="button" data-action="dialog#close" class="<%= button_classes(variant: :ghost) %>">Cancel</button>
+        <% end %>
+        <%= render "shared/ui/button", label: "Open poll", variant: :primary, type: "submit" %>
+      </div>
+    <% end %>
+  </div>
+</div>

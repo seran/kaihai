@@ -1,0 +1,9 @@
+one_moderates_lounge:
+  space: open_lounge
+  user: one
+  role: 1
+
+two_moderates_garden:
+  space: private_garden
+  user: two
+  role: 1

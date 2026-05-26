@@ -1,0 +1,146 @@
+<% content_for :title, "Manage · #{@space.name}" %>
+<% content_for :page_title, "Manage space" %>
+<% content_for :page_subtitle, "Tend to #{@space.name}." %>
+
+<% tab_class = "px-5 py-2 -mb-px text-sm font-medium border-b-2 border-transparent text-ink-soft hover:text-ink transition-colors cursor-pointer data-[active=true]:border-accent data-[active=true]:text-accent" %>
+
+<turbo-frame id="space-body" class="block space-y-8">
+  <%= link_to space_path(@space),
+              data: { turbo_frame: "_top", turbo_action: "advance" },
+              class: "inline-flex items-center gap-1 text-xs font-mono uppercase tracking-wider text-ink-faint hover:text-ink transition-colors" do %>
+    <%= icon "arrow-left", variant: :outline, size: 14 %>
+    Back to @<%= @space.handle %>
+  <% end %>
+
+  <div data-controller="tabs">
+    <div class="flex items-center justify-between border-b border-line mb-6">
+      <div role="tablist" class="flex gap-1">
+        <button type="button" role="tab" data-tabs-target="tab" data-tab-id="members"
+                data-action="tabs#select" class="<%= tab_class %>">Members</button>
+        <button type="button" role="tab" data-tabs-target="tab" data-tab-id="details"
+                data-action="tabs#select" class="<%= tab_class %>">Details</button>
+      </div>
+    </div>
+
+    <%# ── Details ──────────────────────────────────── %>
+    <div data-tabs-target="panel" data-tab-id="details" role="tabpanel" hidden>
+      <%= render "shared/ui/card", padding: :lg do %>
+        <h2 class="text-lg font-semibold text-ink mb-1">Space details</h2>
+        <p class="text-xs text-ink-soft italic mb-4">How members find this room.</p>
+
+        <%= form_with model: @space, url: space_management_path(@space), method: :patch, html: { class: "contents" } do |form| %>
+          <%= render "shared/ui/input", form: form, field: :name, label: "Name", required: true %>
+          <%= render "shared/ui/input", form: form, field: :handle, label: "Handle", required: true %>
+
+          <div class="my-4">
+            <%= form.label :description, "Description", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+            <%= form.text_area :description, rows: 3, maxlength: 500,
+                               class: input_classes(extra: "block w-full px-3") %>
+          </div>
+
+          <div class="my-4">
+            <%= form.label :visibility, "Visibility", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+            <%= form.select :visibility, Space.visibilities.keys.map { |v| [ v.titleize, v ] },
+                            {}, { class: input_classes(extra: "block w-full px-3") } %>
+          </div>
+
+          <% if @space.errors.any? %>
+            <div class="my-4 text-sm text-danger">
+              <%= @space.errors.full_messages.to_sentence %>
+            </div>
+          <% end %>
+
+          <div class="mt-6 pt-4 border-t border-line flex justify-end">
+            <%= render "shared/ui/button", label: "Save changes", variant: :primary, type: "submit" %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <%# ── Members ──────────────────────────────────── %>
+    <div data-tabs-target="panel" data-tab-id="members" role="tabpanel">
+      <div class="space-y-8">
+        <% if @space.visibility_private? %>
+          <%= render "shared/ui/card", padding: :lg do %>
+            <div class="flex items-baseline justify-between mb-4">
+              <h2 class="text-lg font-semibold text-ink">Pending requests</h2>
+              <span class="text-xs font-mono uppercase tracking-wider text-ink-faint">
+                <%= pluralize(@pending_requests.size, "request") %>
+              </span>
+            </div>
+
+            <% if @pending_requests.any? %>
+              <ul class="divide-y divide-line">
+                <% @pending_requests.each do |request| %>
+                  <li class="flex items-center gap-3 py-3">
+                    <span class="w-9 h-9 rounded-full bg-accent-faint text-accent flex items-center justify-center text-sm font-semibold shrink-0">
+                      <%= user_initials(request.user) %>
+                    </span>
+                    <div class="flex-1 min-w-0">
+                      <span class="block font-medium text-ink truncate"><%= request.user.name %></span>
+                      <span class="block text-xs text-ink-soft truncate">@<%= request.user.handle %> · requested <%= time_ago_in_words(request.created_at) %> ago</span>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                      <%= button_to "Approve", space_request_path(@space, request, decision: "approve"), method: :patch,
+                                    form: { class: "contents" },
+                                    class: button_classes(variant: :primary) %>
+                      <%= button_to "Decline", space_request_path(@space, request, decision: "decline"), method: :patch,
+                                    form: { class: "contents" },
+                                    class: button_classes(variant: :ghost) %>
+                    </div>
+                  </li>
+                <% end %>
+              </ul>
+            <% else %>
+              <p class="text-sm text-ink-soft italic py-4">No pending requests.</p>
+            <% end %>
+          <% end %>
+        <% end %>
+
+        <%= render "shared/ui/card", padding: :lg do %>
+          <div class="flex items-baseline justify-between mb-4">
+            <h2 class="text-lg font-semibold text-ink">Members</h2>
+            <span class="text-xs font-mono uppercase tracking-wider text-ink-faint">
+              <%= pluralize(@subscriptions.size, "member") %>
+            </span>
+          </div>
+
+          <ul class="divide-y divide-line">
+            <% @subscriptions.each do |subscription| %>
+              <li class="flex items-center gap-3 py-3">
+                <span class="w-9 h-9 rounded-full bg-accent-faint text-accent flex items-center justify-center text-sm font-semibold shrink-0">
+                  <%= user_initials(subscription.user) %>
+                </span>
+                <div class="flex-1 min-w-0">
+                  <span class="block font-medium text-ink truncate"><%= subscription.user.name %></span>
+                  <span class="block text-xs text-ink-soft truncate">@<%= subscription.user.handle %></span>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <% if subscription.moderator? %>
+                    <%= render "shared/ui/badge", label: "moderator", variant: :info %>
+                  <% end %>
+                  <% unless subscription.user_id == Current.user.id %>
+                    <% if subscription.moderator? %>
+                      <%= button_to "Demote", space_member_path(@space, subscription), method: :patch,
+                                    params: { subscription: { role: "member" } },
+                                    form: { class: "contents", data: { turbo_confirm: "Demote @#{subscription.user.handle} to member?" } },
+                                    class: button_classes(variant: :ghost) %>
+                    <% else %>
+                      <%= button_to "Promote", space_member_path(@space, subscription), method: :patch,
+                                    params: { subscription: { role: "moderator" } },
+                                    form: { class: "contents", data: { turbo_confirm: "Promote @#{subscription.user.handle} to moderator?" } },
+                                    class: button_classes(variant: :ghost) %>
+                    <% end %>
+                    <%= button_to "Remove", space_member_path(@space, subscription), method: :delete,
+                                  form: { class: "contents", data: { turbo_confirm: "Remove @#{subscription.user.handle} from #{@space.name}?" } },
+                                  class: button_classes(variant: :ghost, extra: "text-danger") %>
+                  <% end %>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</turbo-frame>

@@ -1,0 +1,40 @@
+<%
+  title              ||= nil
+  subtitle           ||= nil
+  title_extras         = local_assigns[:title_extras]
+  actions              = local_assigns[:actions]
+  search_action        = local_assigns[:search_action]
+  search_value         = local_assigns[:search_value]
+  search_placeholder   = local_assigns[:search_placeholder] || "Search…"
+%>
+<header class="border-b border-ink-soft/15 px-8 pt-4 pb-4 flex items-center gap-4">
+  <div class="leading-tight flex-1 min-w-0">
+    <div class="flex items-center gap-2">
+      <h1 class="font-semibold text-2xl text-ink"><%= title %></h1>
+      <% if title_extras %><%= title_extras %><% end %>
+    </div>
+    <% if subtitle %>
+      <p class="text-xs text-ink-soft italic"><%= subtitle %></p>
+    <% end %>
+  </div>
+
+  <div class="flex items-center gap-2 shrink-0">
+    <% if actions %>
+      <%= actions %>
+    <% elsif search_action %>
+      <form role="search" action="<%= search_action %>" method="get" class="hidden sm:block">
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-ink-faint pointer-events-none">
+            <%= icon "search", size: 16 %>
+          </span>
+          <input type="search"
+                 name="q"
+                 value="<%= search_value %>"
+                 placeholder="<%= search_placeholder %>"
+                 aria-label="Search"
+                 class="<%= input_classes(extra: 'block w-72 lg:w-96 pl-9 pr-3') %>">
+        </div>
+      </form>
+    <% end %>
+  </div>
+</header>

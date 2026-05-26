@@ -1,0 +1,14 @@
+<%
+  tabs = [
+    [ "Users",   admin_users_path,        "/admin/users"   ],
+    [ "Account", edit_admin_account_path, "/admin/account" ]
+  ]
+%>
+<nav class="flex gap-1 mb-6 border-b border-line">
+  <% tabs.each do |label, link_path, prefix| %>
+    <% active = request.path.start_with?(prefix) %>
+    <%= link_to label, link_path,
+                class: [ "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+                         active ? "border-accent text-accent" : "border-transparent text-ink-soft hover:text-ink" ] %>
+  <% end %>
+</nav>

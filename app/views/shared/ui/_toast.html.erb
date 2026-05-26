@@ -1,0 +1,28 @@
+<%
+  variant  ||= :info
+  message  ||= nil
+  duration ||= 5000
+
+  capsule_class = {
+    info:    "bg-info",
+    success: "bg-success",
+    warning: "bg-warning",
+    danger:  "bg-danger"
+  }.fetch(variant)
+%>
+<div class="animate-toast-in pointer-events-auto"
+     role="status"
+     aria-live="polite"
+     data-controller="toast"
+     data-toast-duration-value="<%= duration %>">
+  <div class="bg-paper text-ink rounded-md shadow-lg px-3 py-3 flex items-stretch gap-3">
+    <span class="w-1 rounded-full shrink-0 <%= capsule_class %>" aria-hidden="true"></span>
+    <p class="flex-1 self-center text-sm"><%= message %></p>
+    <button type="button"
+            data-action="toast#dismiss"
+            aria-label="Dismiss"
+            class="self-start text-ink-soft hover:text-ink leading-none text-lg cursor-pointer">
+      &times;
+    </button>
+  </div>
+</div>

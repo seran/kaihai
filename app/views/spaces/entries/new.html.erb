@@ -1,0 +1,16 @@
+<% content_for :title, "New entry · #{@space.name}" %>
+<% content_for :page_title, "New entry" %>
+<% content_for :page_subtitle, "What kind of thing are you sharing?" %>
+
+<div class="space-y-8">
+  <%= link_to space_path(@space),
+              data: { turbo_action: "advance" },
+              class: "inline-flex items-center gap-1 text-xs font-mono uppercase tracking-wider text-ink-faint hover:text-ink transition-colors" do %>
+    <%= icon "arrow-left", variant: :outline, size: 14 %>
+    Back to @<%= @space.handle %>
+  <% end %>
+
+  <%= render "shared/ui/card", padding: :lg do %>
+    <%= render "spaces/entries/composer", space: @space, entryables: @entryables, active_type: @type %>
+  <% end %>
+</div>

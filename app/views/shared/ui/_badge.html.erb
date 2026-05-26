@@ -1,0 +1,13 @@
+<%
+  variant ||= :neutral
+  styles    = {
+    neutral: "bg-panel text-ink-soft",
+    success: "bg-success-soft text-success",
+    warning: "bg-warning-soft text-warning",
+    danger:  "bg-danger-soft text-danger",
+    info:    "bg-info-soft text-info"
+  }.fetch(variant)
+%>
+<span class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-mono font-medium capitalize tracking-wider <%= styles %>">
+  <%= label %>
+</span>

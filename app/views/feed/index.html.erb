@@ -1,0 +1,52 @@
+<% unless turbo_frame_request? %>
+  <% content_for :title, "Feed" %>
+  <% content_for :page_title, "Feed" %>
+  <% content_for :page_subtitle, "What's new in the spaces you've joined." %>
+
+  <%
+    filters = [
+      [ "All",    nil     ],
+      [ "Posts",  "Post"  ],
+      [ "Events", "Event" ],
+      [ "Polls",  "Poll"  ]
+    ]
+    sort_options = [ [ "Newest", "newest" ], [ "Recently updated", "recent" ] ]
+    tab_class    = "px-5 py-2 -mb-px text-sm font-medium border-b-2 text-ink-soft hover:text-ink transition-colors cursor-pointer"
+  %>
+
+  <div class="space-y-8">
+    <div class="flex items-center justify-between gap-4 border-b border-line">
+      <div class="flex">
+        <% filters.each do |label, value| %>
+          <% active = @type == value %>
+          <%= link_to label, root_path({ type: value, sort: (@sort == "newest" ? nil : @sort) }.compact),
+                      class: "#{tab_class} #{active ? 'border-accent text-accent' : 'border-transparent'}" %>
+        <% end %>
+      </div>
+
+      <%= form_with url: root_path, method: :get, html: { class: "contents" } do |form| %>
+        <%= form.hidden_field :type, value: @type if @type %>
+        <%= form.select :sort, sort_options,
+                        { selected: @sort },
+                        class: "select-caret px-3 py-2 pr-7 text-sm font-medium text-ink-soft hover:text-ink bg-transparent border-0 cursor-pointer focus:outline-none appearance-none",
+                        onchange: "this.form.requestSubmit()" %>
+      <% end %>
+    </div>
+
+    <% if @entries.any? %>
+      <%= render "feed/page", entries: @entries, page: @page, has_more: @has_more, type: @type, sort: @sort %>
+    <% else %>
+      <%= render "shared/ui/card", padding: :lg do %>
+        <p class="text-sm text-ink-soft italic">
+          <% if Current.user.spaces.empty? %>
+            You haven't joined any spaces yet — head over to <%= link_to "Spaces", spaces_path, class: "text-accent hover:underline" %> to find your first.
+          <% else %>
+            Nothing new <%= @type ? "in this filter" : "yet" %>. Quiet around here.
+          <% end %>
+        </p>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <%= render "feed/page", entries: @entries, page: @page, has_more: @has_more, type: @type, sort: @sort %>
+<% end %>

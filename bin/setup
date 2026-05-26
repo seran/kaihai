@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+# Resolve app root and prefer app executables on PATH
+app_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$app_root"
+export PATH="$app_root/bin:$PATH"
+
+# Use gum for pretty output if available; otherwise fall back to plain echo
+if command -v gum &>/dev/null; then
+  banner()      { gum style --foreground 111 --bold "$*"; }
+  step_header() { gum style --foreground 135 --bold "▸ $*"; }
+  done_msg()    { gum style --foreground 46 "✓ Done (${SECONDS} sec)"; }
+else
+  banner()      { echo; echo "▸ $*"; }
+  step_header() { echo; echo "▸ $*"; }
+  done_msg()    { echo; echo "✓ Done (${SECONDS} sec)"; }
+fi
+
+step() {
+  local name="$1"; shift
+  step_header "$name"
+  "$@"
+  echo
+}
+
+needs_priming() {
+  [ "${RAILS_ENV:-development}" = "production" ] && return 1
+  [ "$(bin/rails runner 'print User.any?' 2>/dev/null)" = "true" ] && return 1
+  return 0
+}
+
+banner "Kaihai · dev setup"
+
+# Ruby via mise
+if ! command -v mise &>/dev/null; then
+  echo "mise not found. Install it first: https://mise.jdx.dev/installing-mise.html"
+  exit 1
+fi
+step "Installing Ruby" mise install --yes
+eval "$(mise hook-env -s bash 2>/dev/null || true)"
+
+# OS dependencies (libvips for ActiveStorage variants, sqlite3 CLI for inspection)
+if command -v brew &>/dev/null; then
+  packages=(vips sqlite3)
+  missing=()
+  for pkg in "${packages[@]}"; do
+    brew list "$pkg" &>/dev/null || missing+=("$pkg")
+  done
+  [ ${#missing[@]} -gt 0 ] && step "Installing OS packages" brew install "${missing[@]}"
+elif command -v apt-get &>/dev/null; then
+  step "Installing OS packages" sudo apt-get install -y --no-install-recommends libvips sqlite3
+fi
+
+# Gems
+bundle config set --local auto_install true
+step "Installing RubyGems" bundle install
+
+# Database
+if [[ $* == *--reset* ]]; then
+  step "Resetting the database" bin/rails db:reset
+else
+  step "Preparing the database" bin/rails db:prepare
+fi
+
+# Sample data — dev only, only when no users exist yet
+if needs_priming; then
+  step "Loading sample data" bin/rails dev:prime
+fi
+
+# Pre-build Tailwind so the first dev-server start isn't slow
+step "Building assets" bin/rails tailwindcss:build
+
+step "Cleaning up logs and tempfiles" bin/rails log:clear tmp:clear
+done_msg
+
+# Auto-start the dev server unless opted out
+if [[ ! $* == *--skip-server* ]]; then
+  echo
+  step_header "Starting development server (bin/dev) — Ctrl+C to stop"
+  exec bin/dev
+fi

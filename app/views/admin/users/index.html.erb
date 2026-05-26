@@ -1,0 +1,112 @@
+<% content_for :title, "Adminland · Users" %>
+<% content_for :page_title, "Adminland" %>
+<% content_for :page_subtitle, "Settings the rest of the community can't reach." %>
+
+<div class="space-y-8">
+  <%= render "admin/subnav" %>
+
+  <%= render "shared/ui/card", padding: :lg do %>
+    <div class="flex items-baseline justify-between mb-4 gap-4">
+      <div class="flex items-baseline gap-3 min-w-0">
+        <h2 class="text-lg font-semibold text-ink">Users</h2>
+        <span class="text-xs font-mono uppercase tracking-wider text-ink-faint">
+          <%= pluralize(@users.size, "member") %>
+        </span>
+      </div>
+
+      <div data-controller="dialog">
+        <%= render "shared/ui/button", label: "Invite user", variant: :secondary, icon: "plus",
+                   data: { action: "dialog#open" }, aria: { controls: "invite-user-modal" } %>
+
+        <dialog id="invite-user-modal"
+                data-dialog-target="dialog"
+                class="bg-paper text-ink rounded-md shadow-lg p-0 w-full max-w-md backdrop:bg-black/40 open:m-auto">
+          <div class="p-6">
+            <div class="flex items-start justify-between mb-4">
+              <h2 class="text-lg font-semibold text-ink">Invite user</h2>
+              <button type="button" data-action="dialog#close" aria-label="Close"
+                      class="text-ink-soft hover:text-ink leading-none text-xl cursor-pointer">&times;</button>
+            </div>
+            <p class="text-xs text-ink-soft italic mb-4">
+              We'll email a link they can use to set up their account. The link expires in 24 hours.
+            </p>
+
+            <%= form_with url: admin_invitations_path, html: { class: "contents" } do |form| %>
+              <%= form.fields :user do |user_form| %>
+                <%= render "shared/ui/input", form: user_form, field: :email_address,
+                           label: "Email", type: "email", required: true, autocomplete: "off" %>
+              <% end %>
+
+              <div class="mt-4 flex justify-end gap-2">
+                <button type="button" data-action="dialog#close" class="<%= button_classes(variant: :ghost) %>">Cancel</button>
+                <%= render "shared/ui/button", label: "Send invitation", variant: :primary, type: "submit" %>
+              </div>
+            <% end %>
+          </div>
+        </dialog>
+      </div>
+    </div>
+
+    <turbo-frame id="users-list">
+      <%= form_with url: admin_users_path, method: :get, html: { class: "flex items-end gap-2 mb-4" } do |form| %>
+        <div class="flex-1">
+          <%= form.label :q, "Search", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-ink-faint pointer-events-none">
+              <%= icon "search", size: 16 %>
+            </span>
+            <%= form.search_field :q, value: params[:q], placeholder: "Name or handle",
+                                  class: input_classes(extra: "block w-full pl-9 pr-3") %>
+          </div>
+        </div>
+
+        <div>
+          <%= form.label :role, "Role", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+          <%= form.select :role,
+                          [ [ "All", "" ] ] + User.roles.keys.map { |r| [ r.titleize, r ] },
+                          { selected: params[:role] },
+                          { class: input_classes(extra: "block px-3") } %>
+        </div>
+
+        <%= render "shared/ui/button", label: "Filter", variant: :secondary, type: "submit" %>
+      <% end %>
+
+      <% if @users.any? %>
+        <ul class="divide-y divide-line">
+          <% @users.each do |user| %>
+            <li>
+              <%= link_to admin_user_path(user),
+                          data: { turbo_frame: "_top" },
+                          class: "flex items-center gap-3 py-3 hover:bg-panel rounded-md -mx-2 px-2 transition-colors" do %>
+                <span class="w-9 h-9 rounded-full bg-accent-faint text-accent flex items-center justify-center text-sm font-semibold shrink-0">
+                  <%= user.claimed? ? user_initials(user) : "·" %>
+                </span>
+                <span class="flex-1 min-w-0">
+                  <span class="block font-medium text-ink truncate">
+                    <%= user.name.presence || user.email_address %>
+                  </span>
+                  <span class="block text-xs text-ink-soft truncate">
+                    <% if user.handle.present? %>@<%= user.handle %> · <% end %><%= user.email_address %>
+                  </span>
+                </span>
+                <span class="flex items-center gap-2 shrink-0">
+                  <% if user.pending_invitation? %>
+                    <%= render "shared/ui/badge", label: "pending", variant: :warning %>
+                  <% end %>
+                  <% if user.admin? %>
+                    <%= render "shared/ui/badge", label: "admin", variant: :info %>
+                  <% end %>
+                  <% if user.claimed? && !user.active? %>
+                    <%= render "shared/ui/badge", label: user.status, variant: (user.blocked? ? :danger : :warning) %>
+                  <% end %>
+                </span>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-sm text-ink-soft italic py-4">No users match.</p>
+      <% end %>
+    </turbo-frame>
+  <% end %>
+</div>

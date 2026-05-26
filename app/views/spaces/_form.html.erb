@@ -1,0 +1,41 @@
+<% in_modal = local_assigns.fetch(:in_modal, false) %>
+<% form_data = { controller: "handle-suggest" } %>
+<% form_data[:action] = "turbo:submit-end->dialog#closeOnSuccess" if in_modal %>
+<%= form_with model: space, url: spaces_path,
+              html: { class: "contents", data: form_data } do |form| %>
+  <%= render "shared/ui/input", form: form, field: :name, label: "Name", required: true,
+             data: { handle_suggest_target: "name", action: "input->handle-suggest#nameInput" } %>
+  <%= render "shared/ui/input", form: form, field: :handle, label: "Handle", required: true,
+             hint: "3–20 letters, numbers, or underscores.",
+             field_class: handle_field_classes,
+             data: { handle_suggest_target: "handle", action: "input->handle-suggest#handleEdited" } %>
+  <p data-handle-suggest-target="hint" hidden class="-mt-3 mb-4 text-xs italic text-accent-yellow">
+    That handle was taken — we picked a free one for you.
+  </p>
+
+  <div class="my-4">
+    <%= form.label :description, "Description", class: "block text-xs font-mono font-medium uppercase tracking-wider text-ink-faint mb-1.5" %>
+    <%= form.text_area :description, rows: 3, maxlength: 500,
+                       class: input_classes(extra: "block w-full px-3") %>
+  </div>
+
+  <%= render "shared/ui/radio_group",
+             form: form, field: :visibility, label: "Visibility",
+             options: Space.visibilities.keys.map { |v| [ v.titleize, v ] },
+             hint: "Open spaces let anyone subscribe. Private spaces require moderator approval." %>
+
+  <% if space.errors.any? %>
+    <div class="my-4 text-sm text-danger">
+      <%= space.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <div class="mt-6 flex justify-end gap-2">
+    <% if in_modal %>
+      <button type="button" data-action="dialog#close" class="<%= button_classes(variant: :ghost) %>">Cancel</button>
+    <% else %>
+      <%= link_to "Cancel", spaces_path, class: button_classes(variant: :ghost) %>
+    <% end %>
+    <%= render "shared/ui/button", label: "Create space", variant: :primary, type: "submit" %>
+  </div>
+<% end %>

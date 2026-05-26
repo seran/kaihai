@@ -1,0 +1,17 @@
+<turbo-frame id="sidebar-notifications" class="block">
+  <% unread_count = user.notifications.unread.count %>
+  <% notifications_active = current_page?(notifications_path) %>
+  <li>
+    <%= link_to notifications_path,
+                data: { turbo_frame: "_top" },
+                class: [ "flex items-center gap-2 px-3 py-2 rounded-md text-base text-ink transition-colors",
+                         notifications_active ? "bg-panel" : "hover:bg-panel" ],
+                aria: { current: (notifications_active ? "page" : nil) } do %>
+      <%= icon (unread_count.positive? ? "bell-active" : "bell"), variant: :outline, size: 16 %>
+      <span class="flex-1">Notifications</span>
+      <% if unread_count.positive? %>
+        <span class="text-xs font-mono uppercase tracking-wider text-ink-faint"><%= unread_count %></span>
+      <% end %>
+    <% end %>
+  </li>
+</turbo-frame>
